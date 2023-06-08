@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  test_mysql:
+    build: ./mysql
+    container_name: test_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: myapp
+      MYSQL_DATABASE: test_mysql
+    ports:
+      - "3282:3306"
+    volumes:
+      - ../test_mysql-db:/var/lib/mysql
+
+  test_php:
+    build: ./php
+    container_name: test_php
+    environment:
+      WEB_DOCUMENT_ROOT: /var/www/html/public
+      WEB_DOCUMENT_INDEX: index.php
+      PHP_MEMORY_LIMIT: 2048M
+      PHP_UPLOAD_MAX_FILESIZE: 512M
+      PHP_POST_MAX_SIZE: 512M
+      PHP_DISPLAY_ERRORS: 1
+      php.xdebug.max_nesting_level: 500
+      XDEBUG_MODE: coverage
+      #      FPM_PROCESS_MAX: '128'
+      FPM_RLIMIT_CORE: 2
+    ports:
+      - "8282:80"
+    volumes:
+      - ../server:/var/www/html
+    depends_on:
+      - test_mysql
+
+  test_front:
+    build: ./node
+    container_name: test_front
+    ports:
+      - "8283:8080"
+    volumes:
+      - ./node:/usr/src/app
+    restart: unless-stopped
+    depends_on:
+      - test_mysql
+      - test_php
+
+  test_nginx:
+    image: nginx:stable-alpine
+    container_name: test_nginx
+    volumes:
+      - ./nginx/nginx.conf.prod:/etc/nginx/conf.d/nginx.conf
+    depends_on:
+      - test_php
+      - test_mysql
+      - test_front
+
+volumes:
+  test_mysql-db:

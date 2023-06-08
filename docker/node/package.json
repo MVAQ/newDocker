@@ -1,0 +1,12 @@
+{
+  "name": "docker_web_app",
+  "version": "1.0.0",
+  "description": "node docker",
+  "author": "MVA vladimirmasalv3@gmail.com",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
